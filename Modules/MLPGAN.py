@@ -128,7 +128,7 @@ class MLPGAN(object):
                 if noise.size(0) != inpt.size(0):
                     noise.resize_(inpt.size(0), noise.size(1), noise.size(2), noise.size(3))
                 noise.normal_(0, 1)
-                label.fill_(0)
+                label.fill_(0)  #put label 0 for fake images
 
                 noiseV = V(noise)
                 labelV = V(label)
@@ -201,19 +201,19 @@ class Generator(nn.Module):
         layer = 1
         main = nn.Sequential()
 
-        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_z, n_hidden), nn.Linear(n_z, n_hidden))
+        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_z, n_hidden[0]), nn.Linear(n_z, n_hidden[0]))
         main.add_module('ReLU_{0}'.format(layer), nn.ReLU(True))
 
         while layer < depth - 1:
             layer = layer + 1
-            main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden, n_hidden),
-                            nn.Linear(n_hidden, n_hidden))
+            main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden[layer-2], n_hidden[layer-1]),
+                            nn.Linear(n_hidden[layer-2], n_hidden[layer-1]))
             main.add_module('ReLU_{0}'.format(layer), nn.ReLU(True))
 
         layer = layer + 1
         image_dim = image_size * image_size * n_chan
-        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden, image_dim),
-                        nn.Linear(n_hidden, image_dim))
+        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden[-1], image_dim),
+                        nn.Linear(n_hidden[-1], image_dim))
         main.add_module('Tanh_{0}'.format(layer), nn.Tanh())
 
         self.main = main
@@ -241,18 +241,18 @@ class Discriminator(nn.Module):
         image_dim = image_size * image_size * n_chan
         main = nn.Sequential()
 
-        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, image_dim, n_hidden),
-                        nn.Linear(image_dim, n_hidden))
-        main.add_module('ReLU_{0}'.format(layer), nn.ReLU(True))
+        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, image_dim, n_hidden[0]),
+                        nn.Linear(image_dim, n_hidden[0]))
+        main.add_module('LeakyReLU_{0}'.format(layer), nn.LeakyReLU(0.2))
 
         while layer < depth - 1:
             layer = layer + 1
-            main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden, n_hidden),
-                            nn.Linear(n_hidden, n_hidden))
-            main.add_module('ReLU_{0}'.format(layer), nn.ReLU(True))
+            main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden[layer-2], n_hidden[layer-1]),
+                            nn.Linear(n_hidden[layer-2], n_hidden[layer-1]))
+            main.add_module('LeakyReLU_{0}'.format(layer), nn.LeakyReLU(0.2))
 
         layer = layer + 1
-        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden, 1), nn.Linear(n_hidden, 1))
+        main.add_module('full_connect_{0}_{1}-{2}'.format(layer, n_hidden[-1], 1), nn.Linear(n_hidden[-1], 1))
         main.add_module('Sigmoid_{0}'.format(layer), nn.Sigmoid())
 
         self.main = main
