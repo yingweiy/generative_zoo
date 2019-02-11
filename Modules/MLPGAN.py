@@ -2,8 +2,9 @@ import torch as t
 import torch.nn as nn
 import torch.utils.data as d_utils
 import torchvision.utils as tv_utils
-from ..Utilities import utilities as u
+from Utilities import utilities as u
 from torch.autograd import Variable as V
+import torch
 
 
 class MLPGAN(object):
@@ -117,7 +118,7 @@ class MLPGAN(object):
                 inptV = V(inpt)
                 labelV = V(label)
 
-                otpt = self.Dis_net(inptV)
+                otpt = torch.squeeze(self.Dis_net(inptV))
                 err_D_r = self.loss(otpt, labelV)
                 err_D_r.backward()
 
@@ -133,7 +134,7 @@ class MLPGAN(object):
                 labelV = V(label)
 
                 X_f = self.Gen_net(noiseV.detach())
-                otpt = self.Dis_net(X_f)
+                otpt = torch.squeeze(self.Dis_net(X_f))
                 err_D_f = self.loss(otpt, labelV)
                 err_D_f.backward()
                 err_D = err_D_r + err_D_f
@@ -150,7 +151,7 @@ class MLPGAN(object):
                 labelV = V(label)
 
                 X_gen = self.Gen_net(noiseV)
-                otpt = self.Dis_net(X_gen)
+                otpt = torch.squeeze(self.Dis_net(X_gen))
                 err_G = self.loss(otpt, labelV)
                 err_G.backward()
                 G_optmzr.step()
@@ -159,8 +160,8 @@ class MLPGAN(object):
 
                 # Showing the Progress every show_period iterations
                 if gen_iters % show_period == 0:
-                    print('[{0}/{1}]\tDiscriminator Error:\t{2}\tGenerator Error:\t{3}'
-                          .format(gen_iters, n_iters, round(err_D.data[0], 5), round(err_G.data[0], 5)))
+                    print('[{}/{}]\tDiscriminator Loss:\t{:.5f}\tGenerator Loss:\t{:.5f}'
+                          .format(gen_iters, n_iters, err_D.data, err_G.data))
 
                 # Saving the generated images every show_period*5 iterations
                 if display_images:
@@ -171,7 +172,7 @@ class MLPGAN(object):
                         if self.n_chan > 1:
                             gen_imgs.data = gen_imgs.data.mul(0.5).add(0.5)
                         tv_utils.save_image(gen_imgs.data,
-                                            'Generated_images@iteration={0}.png'.format(gen_iters))
+                                            'pics/mnist_mlp/Generated_images@iteration={0}.png'.format(gen_iters))
 
                 if gen_iters == n_iters:
                     flag = True

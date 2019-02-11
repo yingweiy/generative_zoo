@@ -1,8 +1,8 @@
 # This is a sample main file highlighting the usage of DCGAN module in DCGAN.py
 # Please edit this file based on your requirements
 import sys
-from generative_zoo.Modules import DCGAN as dc
-from generative_zoo.Utilities import data_utilities as d_u
+from Modules import DCGAN as dc
+from Utilities import data_utilities as d_u
 
 # Dataset
 dset = sys.argv[1]

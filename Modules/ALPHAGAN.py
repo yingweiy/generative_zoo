@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.utils.data as d_utils
 import torchvision.utils as tv_utils
 from torch.autograd import Variable as V
-from ..Utilities import utilities as u
+from Utilities import utilities as u
 
 
 class ALPHAGAN(object):
