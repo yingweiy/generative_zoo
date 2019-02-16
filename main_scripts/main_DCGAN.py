@@ -1,12 +1,12 @@
 # This is a sample main file highlighting the usage of DCGAN module in DCGAN.py
 # Please edit this file based on your requirements
 import sys
-from Modules import DCGAN as dc
+from Modules.DCGAN import DCGAN
 from Utilities import data_utilities as d_u
 
 # Dataset
-dset = sys.argv[1]
-root = sys.argv[2]
+dset = 'mnist' #sys.argv[1]
+root = 'dataset/{}'.format(dset) #sys.argv[2]
 
 # Arguments passed to dataset loaders can be modified based on required usage.
 # Please look at the documentation of the loader functions using the help(d_u) command.
@@ -29,7 +29,7 @@ arch = {'arch_type': 'Generic', 'params': params}
 ngpu = 1
 loss = 'BCE'
 
-Gen_model = dc.DCGAN(arch, ngpu=ngpu, loss=loss)
+Gen_model = DCGAN(arch, ngpu=ngpu, loss=loss)
 
 # DCGAN training scheme
 # Parameters below can be modified based on required usage.
@@ -51,7 +51,7 @@ display_images = True
 misc_options = ['init_scheme', 'save_model']
 
 # Call training
-Gen_model.train(dataset=dataset, batch_size=batch_size, n_iters=n_iters,
+Gen_model.train(dataset=dataset, batch_size=batch_size, n_iters=n_iters,pic_folder='pics/{}_dcgan'.format(dset),
                 optimizer_details=opt_dets, show_period=show_period,
                 display_images=display_images, misc_options=misc_options)
 

@@ -44,7 +44,7 @@ class DCGAN(object):
         """
         super(DCGAN, self).__init__()
         if arch['arch_type'] == 'Generic':
-            from ..Architectures import Generic as DG
+            from Architectures import Generic as DG
             self.Gen_net = DG.Generator(image_size=arch['params']['image_size'], n_z=arch['params']['n_z'],
                                         n_chan=arch['params']['n_chan'], n_hidden=arch['params']['hiddens']['gen'],
                                         ngpu=ngpu)
@@ -74,7 +74,7 @@ class DCGAN(object):
         elif loss == 'MSE':
             self.loss = nn.MSELoss()
 
-    def train(self, dataset, batch_size, n_iters, optimizer_details, show_period=50,
+    def train(self, dataset, batch_size, n_iters, optimizer_details, pic_folder, show_period=50,
               display_images=True, misc_options=['init_scheme', 'save_model']):
         """
         Train function of the DCGAN class. This starts training the model.
@@ -155,7 +155,7 @@ class DCGAN(object):
                 inptV = V(inpt)
                 labelV = V(label)
 
-                otpt = self.Dis_net(inptV)
+                otpt = self.Dis_net(inptV).squeeze()
                 err_D_r = self.loss(otpt, labelV)
                 err_D_r.backward()
 
@@ -172,7 +172,7 @@ class DCGAN(object):
                 labelV = V(label)
 
                 X_f = self.Gen_net(noiseV)
-                otpt = self.Dis_net(X_f.detach())
+                otpt = self.Dis_net(X_f.detach()).squeeze()
                 err_D_f = self.loss(otpt, labelV)
                 err_D_f.backward()
                 err_D = err_D_r + err_D_f
@@ -186,7 +186,7 @@ class DCGAN(object):
                 label.fill_(1)
                 labelV = V(label)
 
-                otpt = self.Dis_net(X_f)
+                otpt = self.Dis_net(X_f).squeeze()
                 err_G = self.loss(otpt, labelV)
                 err_G.backward()
                 G_optmzr.step()
@@ -196,7 +196,7 @@ class DCGAN(object):
                 # Showing the Progress every show_period iterations
                 if gen_iters % show_period == 0:
                     print('[{0}/{1}]\tDiscriminator Error:\t{2}\tGenerator Error:\t{3}'
-                          .format(gen_iters, n_iters, round(err_D.data[0], 5), round(err_G.data[0], 5)))
+                          .format(gen_iters, n_iters, round(err_D.data.item(), 5), round(err_G.data.item(), 5)))
 
                 # Saving the generated images every show_period*5 iterations
                 if display_images:
@@ -206,7 +206,7 @@ class DCGAN(object):
 
                         gen_imgs.data = gen_imgs.data.mul(0.5).add(0.5)
                         tv_utils.save_image(gen_imgs.data,
-                                            'DCGAN_Generated_images@iteration={0}.png'.format(gen_iters))
+                                            '{}/DCGAN_Generated_images@iteration={}.png'.format(pic_folder, gen_iters))
 
                 if gen_iters == n_iters:
                     flag = True
